@@ -1,6 +1,6 @@
 #ifndef _LOGIC__H
 #define _LOGIC__H
-#define BOARD_SIZE 3
+#define BOARD_SIZE 15
 #define EMPTY_CELL ' '
 #define O_CELL 'o'
 #define X_CELL 'x'
@@ -8,7 +8,7 @@
 struct Tictactoe {
     char board[BOARD_SIZE][BOARD_SIZE];
     char nextMove = X_CELL;
-    int turn=0;
+    int turn=1, End=0;
 
     void init() {
         for (int i = 0; i < BOARD_SIZE; i++)
@@ -23,33 +23,66 @@ struct Tictactoe {
             turn++;
         }
     }
-    bool win_check(char player)
+
+    void reset()
     {
         for(int i=0;i<BOARD_SIZE;i++)
-        {
             for(int j=0;j<BOARD_SIZE;j++)
+                board[i][j]=EMPTY_CELL;
+        turn=1;
+        End=0;
+        nextMove=X_CELL;
+    }
+
+    bool win_check(char player)
+    {
+        for(int i=0;i<BOARD_SIZE-4;i++)
+        {
+            for(int j=0;j<BOARD_SIZE-4;j++)
             {
-                if(board[i][j]!=player) break;
-                if(j==BOARD_SIZE-1) return 1;
+                for(int x=0;x<5;x++)
+                {
+                    if(board[i][j+x]!=player) break;
+                    if(x==4)
+                    {
+                        End=1;
+                        return 1;
+                    }
+                }
+                for(int x=0;x<5;x++)
+                {
+                    if(board[i+x][j]!=player) break;
+                    if(x==4)
+                    {
+                        End=1;
+                        return 1;
+                    }
+                }
+                for(int x=0;x<5;x++)
+                {
+                    if(board[i+x][j+x]!=player) break;
+                    if(x==4)
+                    {
+                        End=1;
+                        return 1;
+                    }
+                }
             }
         }
-        for(int j=0;j<BOARD_SIZE;j++)
+        for(int i=4;i<BOARD_SIZE;i++)
         {
-            for(int i=0;i<BOARD_SIZE;i++)
+            for(int j=0;j<BOARD_SIZE-4;j++)
             {
-                if(board[i][j]!=player) break;
-                if(i==BOARD_SIZE-1) return 1;
+                for(int x=0;x<5;x++)
+                {
+                    if(board[i-x][j+x]!=player) break;
+                    if(x==4)
+                    {
+                        End=1;
+                        return 1;
+                    }
+                }
             }
-        }
-        for(int i=0;i<BOARD_SIZE;i++)
-        {
-            if(board[i][i]!=player) break;
-            if(i==BOARD_SIZE-1) return 1;
-        }
-        for(int i=0;i<BOARD_SIZE;i++)
-        {
-            if(board[i][BOARD_SIZE-i-1]!=player) break;
-            if(i==BOARD_SIZE-1) return 1;
         }
         return 0;
     }

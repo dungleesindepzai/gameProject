@@ -1,9 +1,11 @@
 #include <iostream>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include "defs.h"
 #include "graphics.h"
 #include "logic.h"
+
 
 using namespace std;
 
@@ -103,16 +105,18 @@ void renderTexture(SDL_Texture *texture, int x, int y, SDL_Renderer* renderer)
 }
 
 void processClick(int x, int y, Tictactoe& game) {
-    // chuyển tọa độ màn hình x, y thành tọa độ hàng cột của game
-    int clickedCol = 0; // todo
-    int clickedRow = 0; // todo
+    int clickedCol = 0;
+    int clickedRow = 0;
     game.move(clickedRow, clickedCol);
 }
 
 void processClickAt(int x, int y, Tictactoe& game) {
-    // chuyển tọa độ màn hình x, y thành tọa độ hàng cột của game
-    int clickedCol = (x - BOARD_X) / CELL_SIZE;
-    int clickedRow = (y - BOARD_Y) / CELL_SIZE;
+    int clickedCol = (x - BOARD_X);
+    int clickedRow = (y - BOARD_Y);
+    if(clickedCol<0 || clickedRow<0) return;
+    if(clickedCol % CELL_SIZE==0 || clickedRow % CELL_SIZE==0) return;
+    clickedCol /= CELL_SIZE;
+    clickedRow /= CELL_SIZE;
     game.move(clickedRow, clickedCol);
 }
 
@@ -123,9 +127,10 @@ int main(int argc, char* argv[])
     graphics.init();
     Tictactoe game;
     game.init();
-    graphics.render(game);
+    graphics.render_home();
 
     int x, y;
+    int home=1;
     SDL_Event event;
     bool quit = false;
     while (! quit) {
@@ -136,18 +141,38 @@ int main(int argc, char* argv[])
                  break;
             case SDL_MOUSEBUTTONDOWN:
                  SDL_GetMouseState(&x, &y);
-                 if(game.win_check(X_CELL) || game.win_check(O_CELL) || game.turn==BOARD_SIZE*BOARD_SIZE)
+                 if(home)
                  {
-                     if(x<=130 || x>=160 || y<=50 || y>=80) continue;
-                     for(int i=0;i<BOARD_SIZE;i++)
-                        for(int j=0;j<BOARD_SIZE;j++)
-                            game.board[i][j]=EMPTY_CELL;
-                    game.turn=0;
-                     graphics.render(game);
-                     continue;
+                     if(x>SCREEN_WIDTH/2-100 && x<SCREEN_WIDTH/2+100 && y>SCREEN_HEIGHT*0.5 && y<SCREEN_HEIGHT*0.5+200)
+                     {
+                         home=0;
+                         graphics.render(game);
+                     }
                  }
-                 processClickAt(x, y, game);
-                 graphics.render(game);
+                 else{
+                     if(x>520 && x<560 && y>5 && y<40) {
+                         game.reset();
+                         graphics.render(game);
+                         continue;
+                     }
+                     if(x>560 && y>5 && y<40)
+                     {
+                         game.reset();
+                         graphics.render_home();
+                         home=1;
+                         continue;
+                     }
+                     if(!game.End)
+                     {
+                         processClickAt(x, y, game);
+                         if(game.win_check('x') || game.win_check('o') || game.turn==BOARD_SIZE*BOARD_SIZE+1)
+                         {
+                             game.End=1;
+                             game.turn--;
+                         }
+                         graphics.render(game);
+                     }
+                 }
                  break;
         }
         SDL_Delay(10);
